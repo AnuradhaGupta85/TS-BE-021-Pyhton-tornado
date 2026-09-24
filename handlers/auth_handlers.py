@@ -17,7 +17,7 @@ class RegisterHandler(BaseHandler):
         try:
             payload = RegisterSchema.model_validate(self.json_body())
         except ValidationError as exc:
-            raise tornado.web.HTTPError(422, reason=str(exc)) from exc
+            raise tornado.web.HTTPError(422, reason=self.validation_error_reason(exc)) from exc
         exists = (await self.db.execute(select(User).where(User.email == str(payload.email)))).scalar_one_or_none()
         if exists:
             raise tornado.web.HTTPError(409, reason='Email is already registered')
@@ -33,7 +33,7 @@ class LoginHandler(BaseHandler):
         try:
             payload = LoginSchema.model_validate(self.json_body())
         except ValidationError as exc:
-            raise tornado.web.HTTPError(422, reason=str(exc)) from exc
+            raise tornado.web.HTTPError(422, reason=self.validation_error_reason(exc)) from exc
         user = (await self.db.execute(select(User).where(User.email == str(payload.email)))).scalar_one_or_none()
         if user is None or not verify_password(payload.password, user.password_hash):
             raise tornado.web.HTTPError(401, reason='Invalid email or password')

@@ -50,6 +50,17 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.write(json.dumps(body, default=str))
 
+    @staticmethod
+    def validation_error_reason(error: object) -> str:
+        """Return a single-line validation message safe for HTTP reason headers."""
+        errors = getattr(error, 'errors', lambda: [])()
+        if not errors:
+            return 'Invalid request data'
+        first_error = errors[0]
+        location = '.'.join(str(part) for part in first_error.get('loc', ()))
+        message = ' '.join(str(first_error.get('msg', 'Invalid value')).splitlines())
+        return f'{location}: {message}' if location else message
+
     def json_body(self) -> dict:
         try:
             data = json.loads(self.request.body or b'{}')

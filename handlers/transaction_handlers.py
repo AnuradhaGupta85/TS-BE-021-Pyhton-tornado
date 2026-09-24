@@ -71,7 +71,7 @@ class TransactionCollectionHandler(BaseHandler):
         try:
             payload = TransactionCreateSchema.model_validate(self.json_body())
         except ValidationError as exc:
-            raise tornado.web.HTTPError(422, reason=str(exc)) from exc
+            raise tornado.web.HTTPError(422, reason=self.validation_error_reason(exc)) from exc
         await accessible_category(self, payload.category_id)
         row = Transaction(amount=payload.amount, type=payload.type, category_id=payload.category_id, date=payload.date, description=payload.description, user_id=self.current_user.id)
         self.db.add(row)
@@ -102,7 +102,7 @@ class TransactionDetailHandler(BaseHandler):
         try:
             payload = TransactionUpdateSchema.model_validate(self.json_body())
         except ValidationError as exc:
-            raise tornado.web.HTTPError(422, reason=str(exc)) from exc
+            raise tornado.web.HTTPError(422, reason=self.validation_error_reason(exc)) from exc
         values = payload.model_dump(exclude_unset=True)
         if 'category_id' in values:
             await accessible_category(self, values['category_id'])
