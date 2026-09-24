@@ -1,5 +1,6 @@
 # JWT token and password security helpers.
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -24,12 +25,15 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
-    return jwt.encode({'sub': str(user_id), 'exp': expires_at}, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode({'sub': str(user_id), 'exp': expires_at, 'jti': uuid.uuid4().hex}, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token_payload(token: str) -> dict:
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    if not payload.get('sub') or not payload.get('jti'):
+        raise jwt.InvalidTokenError('Token has required claims missing')
+    return payload
 
 
 def decode_access_token(token: str) -> int:
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    subject = payload.get('sub')
-    if not subject:
-        raise jwt.InvalidTokenError('Token has no subject')
-    return int(subject)
+    return int(decode_access_token_payload(token)['sub'])

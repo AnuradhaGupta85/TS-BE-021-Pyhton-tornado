@@ -9,7 +9,27 @@ from models import TransactionType
 
 class RegisterSchema(BaseModel):
     email: EmailStr
+    name: str = Field(default='', max_length=100)
     password: str = Field(min_length=8, max_length=128)
+
+
+class ProfileUpdateSchema(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    email: EmailStr | None = None
+
+
+class ChangePasswordSchema(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordSchema(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class LoginSchema(BaseModel):
@@ -27,6 +47,7 @@ class TransactionCreateSchema(BaseModel):
     category_id: int = Field(gt=0)
     date: Date
     description: str | None = Field(default=None, max_length=5000)
+    tag_ids: list[int] = Field(default_factory=list)
 
 
 class TransactionUpdateSchema(BaseModel):
@@ -35,12 +56,18 @@ class TransactionUpdateSchema(BaseModel):
     category_id: int | None = Field(default=None, gt=0)
     date: Date | None = None
     description: str | None = Field(default=None, max_length=5000)
+    tag_ids: list[int] | None = None
+
+
+class TagCreateSchema(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
 
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: EmailStr
+    name: str
     created_at: datetime
 
 
@@ -61,6 +88,8 @@ class TransactionResponse(BaseModel):
     date: Date
     description: str | None
     user_id: int
+    tags: list[dict] = Field(default_factory=list)
+    attachments: list[dict] = Field(default_factory=list)
 
 
 class SummarySchema(BaseModel):
