@@ -1,0 +1,14 @@
+tornado==6.4.2
+SQLAlchemy
+aiomysql
+cryptography
+python-dotenv
+PyJWT
+passlib[bcrypt]
+bcrypt==4.0.1
+pydantic
+email-validator
+greenlet
+pytest
+openpyxl
+python-docx

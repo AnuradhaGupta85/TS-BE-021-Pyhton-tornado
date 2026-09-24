@@ -1,0 +1,31 @@
+services:
+  mysql:
+    image: mysql:8.4.3
+    environment:
+      MYSQL_DATABASE: gen_226c439ab41f
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    environment:
+      PORT: 8000
+      DATABASE_URL: mysql+aiomysql://myuser:mypassword@mysql:3306/gen_226c439ab41f
+      SECRET_KEY: replace-this-development-secret-with-a-secure-value
+      TOKEN_EXPIRE_MINUTES: 30
+    ports:
+      - "21435:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+volumes:
+  mysql_data:
